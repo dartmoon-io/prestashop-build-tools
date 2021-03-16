@@ -1,0 +1,13 @@
+{
+    "name": "dartmoon/prestashop-build-tools",
+    "description": "Set of tools to build PrestaShop Modules",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alessandro Pasqualini",
+            "email": "alessandro@dartmoon.io"
+        }
+    ],
+    "require": {}
+}
