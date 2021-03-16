@@ -14,6 +14,7 @@
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
         require $file;
+        echo "$file";
         break;
     }
 }
@@ -24,14 +25,14 @@ $phpScoperConfigDir = $configDir . '/php-scoper';
 $vendorPrefixedDir = $workingDir . '/vendor_prefixed';
 
 // Let's find the binary of php-scoper
-$phpScoper = __DIR__ . '/../../../bin/php-scooper';
+$phpScoper = __DIR__ . '/../../../bin/php-scoper';
 if (!file_exists($phpScoper)) {
-    $phpScoper = __DIR__ . '/../vendor/bin/php-scooper';
+    $phpScoper = __DIR__ . '/../vendor/bin/php-scoper';
 }
-
 
 // Start with a clean vendor_prefixed directory
 shell_exec("rm -rf {$vendorPrefixedDir}");
+shell_exec("mkdir -p {$vendorPrefixedDir}");
 
 // For each vendor we need to prefix it,
 // mantaining the structure of the vendor
