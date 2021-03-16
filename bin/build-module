@@ -70,13 +70,17 @@ shell_exec("composer dump-autoload --working-dir={$workingDir} --classmap-author
 if (file_exists($buildDir . '/' . $moduleName)) {
     shell_exec("rm -rf {$buildDir}/{$moduleName}");
 }
-
 if (file_exists($buildDir . '/' . $artifactName)) {
     shell_exec("rm {$buildDir}/{$artifactName}");
 }
-    
 shell_exec("mkdir -p {$buildDir}/{$moduleName}");
 
+// Retrieve the exclude file
+$excludeFile = __DIR__ . '/../excludes.txt';
+if (file_exists($configDir . '/' . 'excludes.txt')) {
+    $excludeFile = $configDir . '/' . 'excludes.txt';
+}
+
 // Let's build the module
-shell_exec("rsync -a --exclude-from={$configDir}/excludes.txt --prune-empty-dirs {$workingDir}/ {$buildDir}/{$moduleName}/ --quiet");
+shell_exec("rsync -a --exclude-from={$excludeFile} --prune-empty-dirs {$workingDir}/ {$buildDir}/{$moduleName}/ --quiet");
 shell_exec("cd {$buildDir}; zip -r {$artifactName} {$moduleName}/ --quiet");
