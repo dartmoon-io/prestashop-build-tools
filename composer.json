@@ -21,7 +21,10 @@
     "require-dev": {
         "symfony/var-dumper": "^5.2"
     },
-    "bin": ["bin/prefix-vendor"],
+    "bin": [
+        "bin/prefix-vendor",
+        "bin/build-module"
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
