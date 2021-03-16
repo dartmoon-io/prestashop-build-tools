@@ -5,9 +5,27 @@
     "license": "MIT",
     "authors": [
         {
+            "name": "Dartmoon",
+            "email": "hello@dartmoon.io",
+            "homepage": "https://dartmoon.io"
+        },
+        {
             "name": "Alessandro Pasqualini",
-            "email": "alessandro@dartmoon.io"
+            "email": "alessandro@dartmoon.io",
+            "homepage": "https://dartmoon.io"
         }
     ],
-    "require": {}
+    "require": {
+        "humbug/php-scoper": "^0.14.0"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.2"
+    },
+    "bin": ["bin/prefix-vendor"],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
 }
