@@ -1,0 +1,2 @@
+This file is used to trick php-scoper into maintaing the vendor directory structure.
+You can simply ignore it and it will not be included into the build.
