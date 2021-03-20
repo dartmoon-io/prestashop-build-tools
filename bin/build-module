@@ -52,7 +52,8 @@ foreach ($vendors as $vendor) {
 
         // We need to overwrite the package only if it exists
         if (file_exists($dstPath)) {
-            shell_exec("rm -rf {$dstPath}");
+            // We don't need to remove the old package (non-prefixed one)
+            // becase the prefixing process has already taken care of it 
             shell_exec("cp -R {$srcPath} {$dstPath}");
         }
     }

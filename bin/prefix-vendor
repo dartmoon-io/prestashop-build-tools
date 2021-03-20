@@ -54,5 +54,26 @@ if (!file_exists($vendorDir . '/build-tools.txt')) {
 // Let's prefix the vendors using php-scoper
 shell_exec("{$phpScoperBin} add-prefix --working-dir={$workingDir} --config={$phpScoperConfig} --prefix=\"{$prefix}\" --output-dir={$vendorPrefixedDir} --force");
 
+// We need to remove the old packages or composer will autoload them
+// creating conflicts during development
+$vendors = glob($vendorPrefixedDir . '/*', GLOB_ONLYDIR);
+foreach ($vendors as $vendor) {
+    $vendorName = basename($vendor); // Get the vendor name from the directory name
+    
+    $packages = glob($vendorPrefixedDir . '/' . $vendorName . '/*', GLOB_ONLYDIR);
+    foreach ($packages as $package) {
+        $packageName = basename($package, '.inc.php');
+        $packageDir = $vendorDir . '/' . $vendorName . '/' . $packageName;
+
+        echo $packageDir;
+        exit;
+
+        // We need to overwrite the package only if it exists
+        if (file_exists($packageDir)) {
+            shell_exec("rm -rf {$packageDir}");
+        }
+    }
+}
+
 // Let's dump the autolader
 shell_exec("composer dump-autoload --working-dir={$workingDir} --quiet");
