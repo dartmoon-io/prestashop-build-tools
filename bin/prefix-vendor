@@ -55,4 +55,4 @@ if (!file_exists($vendorDir . '/build-tools.txt')) {
 shell_exec("{$phpScoperBin} add-prefix --working-dir={$workingDir} --config={$phpScoperConfig} --prefix=\"{$prefix}\" --output-dir={$vendorPrefixedDir} --force");
 
 // Let's dump the autolader
-shell_exec("composer dump-autoload --working-dir={$workingDir} --classmap-authoritative --quiet");
+shell_exec("composer dump-autoload --working-dir={$workingDir} --quiet");
