@@ -65,9 +65,6 @@ foreach ($vendors as $vendor) {
         $packageName = basename($package, '.inc.php');
         $packageDir = $vendorDir . '/' . $vendorName . '/' . $packageName;
 
-        echo $packageDir;
-        exit;
-
         // We need to overwrite the package only if it exists
         if (file_exists($packageDir)) {
             shell_exec("rm -rf {$packageDir}");
