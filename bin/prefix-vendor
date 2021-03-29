@@ -18,13 +18,12 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
 }
 
 $workingDir = getcwd();
-$configDir = $workingDir . '/build-tools';
 $vendorDir = $workingDir . '/vendor';
 $vendorPrefixedDir = $workingDir . '/vendor_prefixed';
 $phpScoperBin = __DIR__ . '/../../../bin/php-scoper';
 $phpScoperConfig = __DIR__ . '/../scoper.inc.php';
 $rootComposerJson = json_decode(file_get_contents($workingDir . '/composer.json'), true);
-$prefix = $rootComposerJson['extra']['build-tools']['prefix'];
+$prefix = $rootComposerJson['extra']['prestashop-module']['prefix'];
 
 // Let's check whether the php-scoper binary exists,
 // if not this package is used standalone
@@ -33,9 +32,9 @@ if (!file_exists($phpScoperBin)) {
 }
 
 // Let's check whether the user ovverrided the scoper.inc.php
-// placing a config file into /build-tools folder of the project
-if (file_exists($configDir . '/scoper.inc.php')) {
-    $phpScoperConfig = $configDir . '/scoper.inc.php';
+// placing a config file into the root of the project
+if (file_exists($workingDir . '/scoper.inc.php')) {
+    $phpScoperConfig = $workingDir . '/scoper.inc.php';
 }
 
 // Start with a clean vendor_prefixed directory

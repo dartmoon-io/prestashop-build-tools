@@ -1,6 +1,10 @@
 .git/
-build-tools/
+_dev/
 vendor_prefixed/
 /composer.json
 /composer.lock
 .gitignore
+LICENSE
+README.md
+excludes.txt
+scoper.inc.php

@@ -53,9 +53,7 @@ return [
     // that this does not work with functions or constants neither with classes belonging to the global namespace.
     //
     // Fore more see https://github.com/humbug/php-scoper#whitelist
-    'whitelist' => [
-        //
-    ],
+    'whitelist' => [],
 
     // If `true` then the user defined constants belonging to the global namespace will not be prefixed.
     //

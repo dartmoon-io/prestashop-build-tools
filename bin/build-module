@@ -18,18 +18,17 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
 }
 
 $workingDir = getcwd();
-$configDir = $workingDir . '/build-tools';
 $vendorDir = $workingDir . '/vendor';
 $vendorPrefixedDir = $workingDir . '/vendor_prefixed';
 $buildDir = $workingDir . '/build';
 $rootComposerJson = json_decode(file_get_contents($workingDir . '/composer.json'), true);
-$moduleName = $rootComposerJson['extra']['build-tools']['name'];
+$moduleName = $rootComposerJson['extra']['prestashop-module']['name'];
 $artifactName = $moduleName . '.' . 'zip';
 $excludeFile = __DIR__ . '/../excludes.txt';
 
 // Check whether the user overrided the excluded.txt file
-if (file_exists($configDir . '/' . 'excludes.txt')) {
-    $excludeFile = $configDir . '/' . 'excludes.txt';
+if (file_exists($workingDir . '/' . 'excludes.txt')) {
+    $excludeFile = $workingDir . '/' . 'excludes.txt';
 }
 
 // Let's make a clean install without dev packages (--no-dev)
