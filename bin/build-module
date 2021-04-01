@@ -45,16 +45,13 @@ foreach ($vendors as $vendor) {
     
     $packages = glob($vendorPrefixedDir . '/' . $vendorName . '/*', GLOB_ONLYDIR);
     foreach ($packages as $package) {
-        $packageName = basename($package, '.inc.php');
+        $packageName = basename($package);
         $dstPath = $vendorDir . '/' . $vendorName . '/' . $packageName;
         $srcPath = $vendorPrefixedDir . '/' . $vendorName . '/' . $packageName;
 
-        // We need to overwrite the package only if it exists
-        if (file_exists($dstPath)) {
-            // We don't need to remove the old package (non-prefixed one)
-            // becase the prefixing process has already taken care of it 
-            shell_exec("cp -R {$srcPath} {$dstPath}");
-        }
+        // We don't need to remove the old package (non-prefixed one)
+        // becase the prefixing process has already taken care of it 
+        shell_exec("cp -R {$srcPath} {$dstPath}");
     }
 }
 
