@@ -61,7 +61,7 @@ foreach ($vendors as $vendor) {
     
     $packages = glob($vendorPrefixedDir . '/' . $vendorName . '/*', GLOB_ONLYDIR);
     foreach ($packages as $package) {
-        $packageName = basename($package, '.inc.php');
+        $packageName = basename($package);
         $packageDir = $vendorDir . '/' . $vendorName . '/' . $packageName;
 
         // We need to overwrite the package only if it exists
