@@ -16,7 +16,8 @@
         }
     ],
     "require": {
-        "humbug/php-scoper": "^0.14.0"
+        "humbug/php-scoper": "^0.14.0",
+        "symfony/finder": "^4.0"
     },
     "require-dev": {
         "symfony/var-dumper": "^5.2"

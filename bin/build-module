@@ -10,6 +10,8 @@
  * file that was distributed with this source code.
  */
 
+use Symfony\Component\Finder\Finder;
+
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
         require $file;
@@ -25,10 +27,16 @@ $rootComposerJson = json_decode(file_get_contents($workingDir . '/composer.json'
 $moduleName = $rootComposerJson['extra']['prestashop-module']['name'];
 $artifactName = $moduleName . '.' . 'zip';
 $excludeFile = __DIR__ . '/../excludes.txt';
+$indexFile = __DIR__ . '/../index.php';
 
 // Check whether the user overrided the excluded.txt file
 if (file_exists($workingDir . '/' . 'excludes.txt')) {
     $excludeFile = $workingDir . '/' . 'excludes.txt';
+}
+
+// Check whether the user overrided the index.php file
+if (file_exists($workingDir . '/' . 'index.php')) {
+    $indexFile = $workingDir . '/' . 'index.php';
 }
 
 // Let's make a clean install without dev packages (--no-dev)
@@ -73,4 +81,20 @@ shell_exec("mkdir -p {$buildDir}/{$moduleName}");
 
 // Let's build the module
 shell_exec("rsync -a --exclude-from={$excludeFile} --prune-empty-dirs {$workingDir}/ {$buildDir}/{$moduleName}/ --quiet");
+
+// Before creating the zip file we need to add all index.php files
+// into all directories
+$finder = new Finder();
+$finder
+    ->directories()
+    ->in($buildDir . '/' . $moduleName);
+
+foreach ($finder as $file) {
+    $newfile = $file->getRealPath() . '/index.php';
+    if (!file_exists($newfile)) {
+        copy($indexFile, $newfile);
+    }
+}
+
+// Then we can finally build the module
 shell_exec("cd {$buildDir}; zip -r {$artifactName} {$moduleName}/ --quiet");
