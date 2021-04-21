@@ -8,3 +8,4 @@ LICENSE
 README.md
 excludes.txt
 scoper.inc.php
+.DS_Store
