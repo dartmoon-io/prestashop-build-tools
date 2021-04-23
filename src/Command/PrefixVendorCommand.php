@@ -51,6 +51,7 @@ class PrefixVendorCommand extends Command
         // Extract all options needed to prefix the vendors
         $workingDir = $input->getOption('working-dir');
         $vendorDir = $input->getOption('vendor-dir');
+        $tmpDir = $workingDir . self::TMP_DIR;
         $configFile = $input->getOption('config');
         $prefix = $input->getOption('prefix');
 
@@ -77,7 +78,7 @@ class PrefixVendorCommand extends Command
         $this->prefixVendor(
             $workingDir,
             $vendorDir,
-            $workingDir . self::TMP_DIR, // Our simple temp directory
+            $tmpDir,
             $configFile,
             $prefix
         );
@@ -89,34 +90,34 @@ class PrefixVendorCommand extends Command
     protected function prefixVendor(
         $workingDir,
         $vendorDir,
-        $outputDir,
+        $tempDir,
         $configFile,
         $prefix
     ) {
-        $this->cleanOutputDirectory($outputDir);
+        $this->cleanTempDirectory($tempDir);
         $this->copyDummyFile($vendorDir);
         
         // Let's run php-scoper
         $arguments = [
             '--working-dir' => $workingDir,
-            '--output-dir' => $outputDir,
+            '--output-dir' => $tempDir,
             '--config' => $configFile,
             '--prefix' => $prefix,
             '--force' => true,
         ];
         $this->runPHPScoper($arguments);
 
-        $this->moveBackPrefixedVendors($vendorDir, $outputDir);
+        $this->moveBackPrefixedVendors($vendorDir, $tempDir);
         $this->dumpComposerAutoload($workingDir);
     }
 
     /**
      * Clean the output directory
      */
-    protected function cleanOutputDirectory($outputDir)
+    protected function cleanTempDirectory($tempDir)
     {
         $filesystem = new Filesystem();
-        $filesystem->remove($outputDir);
+        $filesystem->remove($tempDir);
     }
 
     /**
