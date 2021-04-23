@@ -5,6 +5,7 @@ namespace Dartmoon\PrestaShopBuildTools\Command;
 use Dartmoon\PrestaShopBuildTools\ComposerJson;
 use Humbug\PhpScoper\Console\Command\AddPrefixCommand;
 use Humbug\PhpScoper\Container;
+use Isolated\Symfony\Component\Finder\Finder as IsolatedFinder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,7 +42,7 @@ class PrefixVendorCommand extends Command
     {
         // Save the output interface, this is needed
         // after, when we are going to run PHP-Scoper
-        $this->$output = $output;
+        $this->output = $output;
         
         // Extract all options needed to prefix the vendors
         $workingDir = $input->getOption('working-dir');
@@ -137,6 +138,11 @@ class PrefixVendorCommand extends Command
      */
     protected function runPHPScoper($arguments = [])
     {
+        // Exposes the finder used by PHP-Scoper PHAR to allow its usage in the configuration file.
+        if (false === class_exists(IsolatedFinder::class)) {
+            class_alias(Finder::class, IsolatedFinder::class);
+        }
+
         // Let's create the container
         // and instantiate the command
         $container = new Container();
@@ -144,6 +150,7 @@ class PrefixVendorCommand extends Command
             new Filesystem(),
             $container->getScoper()
         );
+        $command->setApplication($this->getApplication());
 
         // Let's execute the command
         $commandInput = new ArrayInput($arguments);

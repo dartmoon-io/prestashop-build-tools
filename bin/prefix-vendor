@@ -11,7 +11,7 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
     }
 }
 
-$application = new Application();
+$application = new Application('Dartmoon PrestaShop Build Tools');
 $command = new PrefixVendorCommand();
 
 $application->add($command);
