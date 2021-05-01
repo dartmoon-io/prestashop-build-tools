@@ -19,6 +19,41 @@ class BuildModuleCommand extends Command
     protected const TMP_DIR = '/.pbt';
 
     /**
+     * Working directory
+     */
+    protected $workingDir;
+
+    /**
+     * Output directory
+     */
+    protected $outputDir;
+
+    /**
+     * Tmp directory
+     */
+    protected $tmpDir;
+    
+    /**
+     * Module name
+     */
+    protected $moduleName;
+    
+    /**
+     * Exclude files
+     */
+    protected $excludeFile;
+    
+    /**
+     * Index php file to use
+     */
+    protected $indexPhpFile;
+    
+    /**
+     * Whether using authoritative classmap
+     */
+    protected $authoritativeClassmap;
+
+    /**
      * Configures the current command.
      */
     protected function configure(): void
@@ -34,81 +69,60 @@ class BuildModuleCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output)
     {
         // Extract all options needed to build the module artifact
-        $workingDir = $input->getOption('working-dir');
-        $outputDir = $input->getOption('output-dir');
-        $tmpDir = $workingDir . self::TMP_DIR;
-        $moduleName = $input->getOption('module-name');
-        $excludeFile = $input->getOption('exclude');
-        $indexPhpFile = realpath(dirname(dirname(__DIR__))) . '/index.php';
-        $authoritativeClassmap = $input->getOption('authoritative');
+        $this->workingDir = $input->getOption('working-dir');
+        $this->outputDir = $input->getOption('output-dir');
+        $this->tmpDir = $this->workingDir . self::TMP_DIR;
+        $this->moduleName = $input->getOption('module-name');
+        $this->excludeFile = $input->getOption('exclude');
+        $this->indexPhpFile = realpath(dirname(dirname(__DIR__))) . '/index.php';
+        $this->authoritativeClassmap = $input->getOption('authoritative');
 
         // If the user did not specify an exludes file
-        if (!$excludeFile) {
-            $excludeFile = realpath(dirname(dirname(__DIR__)) . '/excludes.txt');
+        if (!$this->excludeFile) {
+            $this->excludeFile = realpath(dirname(dirname(__DIR__)) . '/excludes.txt');
 
             // Let's check if the user overrided it, placing an exludes file
             // into the working directory
-            $overridedExcludedFile = $workingDir . '/excludes.txt';
+            $overridedExcludedFile = $this->workingDir . '/excludes.txt';
             if (file_exists($overridedExcludedFile) && is_file($overridedExcludedFile)) {
-                $excludeFile = $overridedExcludedFile;
+                $this->excludeFile = $overridedExcludedFile;
             }
         }
 
         // If the user did not specify a config file
-        $overridedIndexPhpFile = $workingDir . '/excludes.txt';
+        $overridedIndexPhpFile = $this->workingDir . '/index.php';
         if (file_exists($overridedIndexPhpFile) && is_file($overridedIndexPhpFile)) {
-            $indexPhpFile = $overridedIndexPhpFile;
+            $this->indexPhpFile = $overridedIndexPhpFile;
         }
 
         // If the user did not specify a module name
-        if (!$moduleName) {
+        if (!$this->moduleName) {
             // The prefix should be saved into the composer.json
-            $composerJson = new ComposerJson($workingDir . '/composer.json');
-            $moduleName = $composerJson->get('extra.prestashop-build-tools.name');
+            $composerJson = new ComposerJson($this->workingDir . '/composer.json');
+            $this->moduleName = $composerJson->get('extra.prestashop-build-tools.name');
         }
-
-        // Let's build the module
-        $this->buildModule(
-            $workingDir,
-            $tmpDir,
-            $outputDir,
-            $moduleName,
-            $excludeFile,
-            $indexPhpFile,
-            $authoritativeClassmap
-        );
     }
 
-    /**
-     * Build the module
-     */
-    protected function buildModule(
-        $workingDir,
-        $tmpDir,
-        $outputDir,
-        $moduleName,
-        $excludeFile,
-        $indexPhpFile,
-        $authoritativeClassmap
-    ) {
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         // Composer the build directory
-        $buildDir = $tmpDir . '/' . $moduleName;
-        $artifactName = $moduleName . '.zip';
+        $buildDir = $this->tmpDir . '/' . $this->moduleName;
+        $artifactName = $this->moduleName . '.zip';
 
         // If the user chosen to generate authoritatative classmap autoload
-        if ($authoritativeClassmap) {
-            $this->generateAuthoritativeClassmap($workingDir);
+        if ($this->authoritativeClassmap) {
+            $this->generateAuthoritativeClassmap($this->workingDir);
         }
 
         $this->cleanTempDirectory($buildDir);
-        $this->removeArtifact($outputDir, $artifactName);
-        $this->copyFiles($workingDir, $buildDir, $excludeFile);
-        $this->addIndexPhpFile($buildDir, $indexPhpFile);
-        $this->generateArtifact($tmpDir, $moduleName, $artifactName);
-        $this->moveArtifact($tmpDir, $outputDir, $artifactName);
+        $this->removeArtifact($this->outputDir, $artifactName);
+        $this->copyFiles($this->workingDir, $buildDir, $this->excludeFile);
+        $this->addIndexPhpFile($buildDir, $this->indexPhpFile);
+        $this->generateArtifact($this->tmpDir, $this->moduleName, $artifactName);
+        $this->moveArtifact($this->tmpDir, $this->outputDir, $artifactName);
     }
 
     /**

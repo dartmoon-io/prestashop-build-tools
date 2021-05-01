@@ -28,6 +28,31 @@ class PrefixVendorCommand extends Command
     protected $output;
 
     /**
+     * Working directory
+     */
+    protected $workingDir;
+    
+    /**
+     * Vendor directory
+     */
+    protected $vendorDir;
+    
+    /**
+     * Temp directory
+     */
+    protected $tmpDir;
+    
+    /**
+     * Config file for php-scooper
+     */
+    protected $configFile;
+    
+    /**
+     * Vendor prefix
+     */
+    protected $prefix;
+
+    /**
      * Configures the current command.
      */
     protected function configure(): void
@@ -42,73 +67,56 @@ class PrefixVendorCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output)
     {
         // Save the output interface, this is needed
         // after, when we are going to run PHP-Scoper
         $this->output = $output;
         
         // Extract all options needed to prefix the vendors
-        $workingDir = $input->getOption('working-dir');
-        $vendorDir = $input->getOption('vendor-dir');
-        $tmpDir = $workingDir . self::TMP_DIR;
-        $configFile = $input->getOption('config');
-        $prefix = $input->getOption('prefix');
+        $this->workingDir = $input->getOption('working-dir');
+        $this->vendorDir = $input->getOption('vendor-dir');
+        $this->tmpDir = $this->workingDir . self::TMP_DIR;
+        $this->configFile = $input->getOption('config');
+        $this->prefix = $input->getOption('prefix');
 
         // If the user did not specify a config file
-        if (!$configFile) {
-            $configFile = realpath(dirname(dirname(__DIR__)) . '/scoper.inc.php');
+        if (!$this->configFile) {
+            $this->configFile = realpath(dirname(dirname(__DIR__)) . '/scoper.inc.php');
 
             // Let's check if the user overrided it, placing a config file
             // into the working directory
-            $overridedConfigFile = $workingDir . '/scoper.inc.php';
+            $overridedConfigFile = $this->workingDir . '/scoper.inc.php';
             if (file_exists($overridedConfigFile) && is_file($overridedConfigFile)) {
-                $configFile = $overridedConfigFile;
+                $this->configFile = $overridedConfigFile;
             }
         }
 
         // If the user did not specify a prefix
-        if (!$prefix) {
+        if (!$this->prefix) {
             // The prefix should be saved into the composer.json
-            $composerJson = new ComposerJson($workingDir . '/composer.json');
-            $prefix = $composerJson->get('extra.prestashop-build-tools.prefix');
+            $composerJson = new ComposerJson($this->workingDir . '/composer.json');
+            $this->prefix = $composerJson->get('extra.prestashop-build-tools.prefix');
         }
-        
-        // Let's prefix the vendor
-        $this->prefixVendor(
-            $workingDir,
-            $vendorDir,
-            $tmpDir,
-            $configFile,
-            $prefix
-        );
     }
 
-    /**
-     * Prefix the vendors
-     */
-    protected function prefixVendor(
-        $workingDir,
-        $vendorDir,
-        $tempDir,
-        $configFile,
-        $prefix
-    ) {
-        $this->cleanTempDirectory($tempDir);
-        $this->copyDummyFile($vendorDir);
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->cleanTempDirectory($this->tempDir);
+        $this->copyDummyFile($this->vendorDir);
         
         // Let's run php-scoper
         $arguments = [
-            '--working-dir' => $workingDir,
-            '--output-dir' => $tempDir,
-            '--config' => $configFile,
-            '--prefix' => $prefix,
+            '--working-dir' => $this->workingDir,
+            '--output-dir' => $this->tempDir,
+            '--config' => $this->configFile,
+            '--prefix' => $this->prefix,
             '--force' => true,
         ];
         $this->runPHPScoper($arguments);
 
-        $this->moveBackPrefixedVendors($vendorDir, $tempDir);
-        $this->dumpComposerAutoload($workingDir);
+        $this->moveBackPrefixedVendors($this->vendorDir, $this->tempDir);
+        $this->dumpComposerAutoload($this->workingDir);
     }
 
     /**
