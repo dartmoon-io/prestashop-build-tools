@@ -59,7 +59,7 @@ class BuildModuleCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setname('prefix-vendor')
+            ->setname('build-module')
             ->setDescription('Create the publishable artifact for the current module')
             ->addOption('working-dir', 'd', InputOption::VALUE_OPTIONAL, 'Use the given directory as working directory', getcwd())
             ->addOption('output-dir', 'b', InputOption::VALUE_OPTIONAL, 'User the given directory as output directory for the artifact', getcwd())
