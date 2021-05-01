@@ -21,6 +21,11 @@ class BuildModuleCommand extends Command
     protected const TMP_DIR = '/.pbt';
 
     /**
+     * Index php file
+     */
+    protected const INDEX_PHP_FILE = __DIR__ . '/../../index.php';
+
+    /**
      * @var OutputInterface
      */
     protected $output;
@@ -49,11 +54,6 @@ class BuildModuleCommand extends Command
      * Exclude files
      */
     protected $excludeFile;
-    
-    /**
-     * Index php file to use
-     */
-    protected $indexPhpFile;
     
     /**
      * Whether using authoritative classmap
@@ -94,7 +94,6 @@ class BuildModuleCommand extends Command
         $this->tmpDir = $this->workingDir . self::TMP_DIR;
         $this->moduleName = $input->getOption('module-name');
         $this->excludeFile = $input->getOption('exclude');
-        $this->indexPhpFile = realpath(dirname(dirname(__DIR__))) . '/index.php';
         $this->authoritativeClassmap = $input->getOption('authoritative');
         $this->licenseFile = $input->getOption('license');
 
@@ -108,12 +107,6 @@ class BuildModuleCommand extends Command
             if (file_exists($overridedExcludedFile) && is_file($overridedExcludedFile)) {
                 $this->excludeFile = $overridedExcludedFile;
             }
-        }
-
-        // If the user did not specify a config file
-        $overridedIndexPhpFile = $this->workingDir . '/index.php';
-        if (file_exists($overridedIndexPhpFile) && is_file($overridedIndexPhpFile)) {
-            $this->indexPhpFile = $overridedIndexPhpFile;
         }
 
         // If the user did not specify a module name
@@ -150,7 +143,7 @@ class BuildModuleCommand extends Command
         $this->cleanTmpDirectory($buildDir);
         $this->removeArtifact($this->outputDir, $artifactName);
         $this->copyFiles($this->workingDir, $buildDir, $this->excludeFile);
-        $this->addIndexPhpFile($buildDir, $this->indexPhpFile);
+        $this->addIndexPhpFiles($buildDir);
         $this->updateLicenceOfFiles($buildDir, $this->licenseFile);
         $this->generateArtifact($this->tmpDir, $this->moduleName, $artifactName);
         $this->moveArtifact($this->tmpDir, $this->outputDir, $artifactName);
@@ -210,7 +203,7 @@ class BuildModuleCommand extends Command
     /**
      * PrestaShop demand an index.php into every single directory
      */
-    protected function addIndexPhpFile($buildDir, $indexPhpFile)
+    protected function addIndexPhpFiles($buildDir)
     {
         $filesystem = new Filesystem();
 
@@ -218,6 +211,7 @@ class BuildModuleCommand extends Command
         $finder->directories()
             ->in($buildDir);
 
+        $indexPhpFile = realpath(self::INDEX_PHP_FILE);
         foreach ($finder as $directory) {
             if (!$filesystem->exists($directory . '/index.php')) {
                 $filesystem->copy($indexPhpFile, $directory . '/index.php');
