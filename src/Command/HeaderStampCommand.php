@@ -316,7 +316,7 @@ class HeaderStampCommand extends UpdateLicensesCommand
     {
         if (!$node->hasAttribute('comments')) {
             $needle = '<?php';
-            $replace = "<?php\n" . $this->text . "\n"; // We need a blank line after the file comment
+            $replace = "<?php\n" . $this->text; // We need a blank line after the file comment
             $haystack = $file->getContents();
 
             $pos = strpos($haystack, $needle);
