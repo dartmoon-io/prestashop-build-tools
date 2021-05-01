@@ -316,7 +316,7 @@ class HeaderStampCommand extends UpdateLicensesCommand
     {
         if (!$node->hasAttribute('comments')) {
             $needle = '<?php';
-            $replace = "<?php\n" . $this->text . "\n";
+            $replace = "<?php\n" . $this->text . "\n"; // We need a blank line after the file comment
             $haystack = $file->getContents();
 
             $pos = strpos($haystack, $needle);
@@ -338,7 +338,7 @@ class HeaderStampCommand extends UpdateLicensesCommand
         foreach ($comments as $comment) {
             if ($comment instanceof \PhpParser\Comment
                 && strpos($comment->getText(), $this->discriminationString) !== false) {
-                $newContent = str_replace($comment->getText(), $this->text, $file->getContents());
+                $newContent = str_replace($comment->getText(), $this->text . "\n", $file->getContents());
 
                 if (!$this->runAsDry) {
                     file_put_contents(

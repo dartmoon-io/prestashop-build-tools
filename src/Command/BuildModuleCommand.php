@@ -209,7 +209,8 @@ class BuildModuleCommand extends Command
 
         $finder = new Finder();
         $finder->directories()
-            ->in($buildDir);
+            ->in($buildDir)
+            ->append([$buildDir]);
 
         $indexPhpFile = realpath(self::INDEX_PHP_FILE);
         foreach ($finder as $directory) {
