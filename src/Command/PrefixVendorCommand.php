@@ -193,7 +193,7 @@ class PrefixVendorCommand extends Command
             // the prefixed one
             $relativePath = substr($directory, strlen($outputDir));
             $filesystem->remove($vendorDir . '/' . $relativePath);
-            $filesystem->copy($directory, $vendorDir . '/' . $relativePath);
+            $filesystem->mirror($directory, $vendorDir . '/' . $relativePath);
         }
     }
 
