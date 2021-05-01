@@ -1,14 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-/*
- * This file is part of the dartmoon/prestashop-build-tools package.
- *
- * Copyright (c) 2021 Dartmoon <hello@dartmoon.io>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+use Dartmoon\PrestaShopBuildTools\Command\PrefixVendorCommand;
+use Symfony\Component\Console\Application;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
@@ -17,59 +11,10 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
     }
 }
 
-$workingDir = getcwd();
-$vendorDir = $workingDir . '/vendor';
-$vendorPrefixedDir = $workingDir . '/vendor_prefixed';
-$phpScoperBin = __DIR__ . '/../../../bin/php-scoper';
-$phpScoperConfig = __DIR__ . '/../scoper.inc.php';
-$rootComposerJson = json_decode(file_get_contents($workingDir . '/composer.json'), true);
-$prefix = $rootComposerJson['extra']['prestashop-module']['prefix'];
+$application = new Application('Dartmoon PrestaShop Build Tools');
+$command = new PrefixVendorCommand();
 
-// Let's check whether the php-scoper binary exists,
-// if not this package is used standalone
-if (!file_exists($phpScoperBin)) {
-    $phpScoperBin = __DIR__ . '/../vendor/bin/php-scoper';
-}
+$application->add($command);
 
-// Let's check whether the user ovverrided the scoper.inc.php
-// placing a config file into the root of the project
-if (file_exists($workingDir . '/scoper.inc.php')) {
-    $phpScoperConfig = $workingDir . '/scoper.inc.php';
-}
-
-// Start with a clean vendor_prefixed directory
-shell_exec("rm -rf {$vendorPrefixedDir}");
-shell_exec("mkdir -p {$vendorPrefixedDir}");
-
-// So php-scoper do not retain the directory structure given
-// by composer (vendor_name/package_name). To overcome this
-// we are going to trick it putting an empty txt file inside
-// the vendor folder. With this the "common path" of all vendors
-// is exactly the vendor folder and so the directory structure is preserved
-if (!file_exists($vendorDir . '/build-tools.txt')) {
-    copy(__DIR__ . '/../build-tools.txt', $vendorDir . '/build-tools.txt');
-}
-
-// Let's prefix the vendors using php-scoper
-shell_exec("{$phpScoperBin} add-prefix --working-dir={$workingDir} --config={$phpScoperConfig} --prefix=\"{$prefix}\" --output-dir={$vendorPrefixedDir} --force");
-
-// We need to remove the old packages or composer will autoload them
-// creating conflicts during development
-$vendors = glob($vendorPrefixedDir . '/*', GLOB_ONLYDIR);
-foreach ($vendors as $vendor) {
-    $vendorName = basename($vendor); // Get the vendor name from the directory name
-    
-    $packages = glob($vendorPrefixedDir . '/' . $vendorName . '/*', GLOB_ONLYDIR);
-    foreach ($packages as $package) {
-        $packageName = basename($package);
-        $packageDir = $vendorDir . '/' . $vendorName . '/' . $packageName;
-
-        // We need to overwrite the package only if it exists
-        if (file_exists($packageDir)) {
-            shell_exec("rm -rf {$packageDir}");
-        }
-    }
-}
-
-// Let's dump the autolader
-shell_exec("composer dump-autoload --working-dir={$workingDir} --quiet");
+$application->setDefaultCommand($command->getName());
+$application->run();
