@@ -226,7 +226,7 @@ class BuildModuleCommand extends Command
     {
         // Let's create the container
         // and instantiate the command
-        $command = new UpdateLicensesCommand();
+        $command = new HeaderStampCommand();
         $command->setApplication($this->getApplication());
 
         $arguments = [
