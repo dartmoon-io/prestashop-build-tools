@@ -102,30 +102,28 @@ class PrefixVendorCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->cleanTempDirectory($this->tempDir);
+        $this->cleanTmpDirectory($this->tmpDir);
         $this->copyDummyFile($this->vendorDir);
         
-        // Let's run php-scoper
-        $arguments = [
-            '--working-dir' => $this->workingDir,
-            '--output-dir' => $this->tempDir,
-            '--config' => $this->configFile,
-            '--prefix' => $this->prefix,
-            '--force' => true,
-        ];
-        $this->runPHPScoper($arguments);
+        // Let's prefix the vendor
+        $this->prefixVendor(
+            $this->workingDir, 
+            $this->tmpDir,
+            $this->configFile,
+            $this->prefix
+        );
 
-        $this->moveBackPrefixedVendors($this->vendorDir, $this->tempDir);
+        $this->moveBackPrefixedVendors($this->vendorDir, $this->tmpDir);
         $this->dumpComposerAutoload($this->workingDir);
     }
 
     /**
      * Clean the output directory
      */
-    protected function cleanTempDirectory($tempDir)
+    protected function cleanTmpDirectory($tmpDir)
     {
         $filesystem = new Filesystem();
-        $filesystem->remove($tempDir);
+        $filesystem->remove($tmpDir);
     }
 
     /**
@@ -147,7 +145,7 @@ class PrefixVendorCommand extends Command
     /**
      * Run PHPScoper
      */
-    protected function runPHPScoper($arguments = [])
+    protected function prefixVendor($workingDir, $outputDir, $configFile, $prefix)
     {
         // Exposes the finder used by PHP-Scoper PHAR to allow its usage in the configuration file.
         if (false === class_exists(IsolatedFinder::class)) {
@@ -162,6 +160,14 @@ class PrefixVendorCommand extends Command
             $container->getScoper()
         );
         $command->setApplication($this->getApplication());
+
+        $arguments = [
+            '--working-dir' => $workingDir,
+            '--output-dir' => $outputDir,
+            '--config' => $configFile,
+            '--prefix' => $prefix,
+            '--force' => true,
+        ];
 
         // Let's execute the command
         $commandInput = new ArrayInput($arguments);

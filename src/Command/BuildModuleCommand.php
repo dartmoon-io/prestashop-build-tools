@@ -147,7 +147,7 @@ class BuildModuleCommand extends Command
             $this->generateAuthoritativeClassmap($this->workingDir);
         }
 
-        $this->cleanTempDirectory($buildDir);
+        $this->cleanTmpDirectory($buildDir);
         $this->removeArtifact($this->outputDir, $artifactName);
         $this->copyFiles($this->workingDir, $buildDir, $this->excludeFile);
         $this->addIndexPhpFile($buildDir, $this->indexPhpFile);
@@ -168,11 +168,11 @@ class BuildModuleCommand extends Command
     /**
      * Clean the output directory
      */
-    protected function cleanTempDirectory($tempDir)
+    protected function cleanTmpDirectory($tmpDir)
     {
         $filesystem = new Filesystem();
-        $filesystem->remove($tempDir);
-        $filesystem->mkdir($tempDir);
+        $filesystem->remove($tmpDir);
+        $filesystem->mkdir($tmpDir);
     }
 
     /**
