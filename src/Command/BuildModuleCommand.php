@@ -3,7 +3,9 @@
 namespace Dartmoon\PrestaShopBuildTools\Command;
 
 use Dartmoon\PrestaShopBuildTools\ComposerJson;
+use PrestaShop\HeaderStamp\Command\UpdateLicensesCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,6 +19,11 @@ class BuildModuleCommand extends Command
      * Temp directory where to store everything we need
      */
     protected const TMP_DIR = '/.pbt';
+
+    /**
+     * @var OutputInterface
+     */
+    protected $output;
 
     /**
      * Working directory
@@ -54,6 +61,11 @@ class BuildModuleCommand extends Command
     protected $authoritativeClassmap;
 
     /**
+     * Copyright file
+     */
+    protected $licenseFile;
+
+    /**
      * Configures the current command.
      */
     protected function configure(): void
@@ -65,12 +77,17 @@ class BuildModuleCommand extends Command
             ->addOption('output-dir', 'b', InputOption::VALUE_OPTIONAL, 'User the given directory as output directory for the artifact', getcwd())
             ->addOption('module-name', 'm', InputOption::VALUE_OPTIONAL, 'Name of the module you are building', null)
             ->addOption('exclude', 'e', InputOption::VALUE_OPTIONAL, 'rsync-like exclude file to exclude files from artifact', null)
+            ->addOption('license', '', InputOption::VALUE_OPTIONAL, 'File of license to apply to all files', null)
             ->addOption('authoritative', 'a', InputOption::VALUE_NONE, 'Generate classmap authoritative autoload')
         ;
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        // Save the output interface, this is needed
+        // after, when we are going to update the license of files
+        $this->output = $output;
+
         // Extract all options needed to build the module artifact
         $this->workingDir = $input->getOption('working-dir');
         $this->outputDir = $input->getOption('output-dir');
@@ -79,6 +96,7 @@ class BuildModuleCommand extends Command
         $this->excludeFile = $input->getOption('exclude');
         $this->indexPhpFile = realpath(dirname(dirname(__DIR__))) . '/index.php';
         $this->authoritativeClassmap = $input->getOption('authoritative');
+        $this->licenseFile = $input->getOption('license');
 
         // If the user did not specify an exludes file
         if (!$this->excludeFile) {
@@ -104,6 +122,18 @@ class BuildModuleCommand extends Command
             $composerJson = new ComposerJson($this->workingDir . '/composer.json');
             $this->moduleName = $composerJson->get('extra.prestashop-build-tools.name');
         }
+
+        // If the user did not specify an exludes file
+        if (!$this->licenseFile) {
+            $this->licenseFile = realpath(dirname(dirname(__DIR__)) . '/copyright.txt');
+
+            // Let's check if the user overrided it, placing a copyright file
+            // into the working directory
+            $overridedExcludedFile = $this->workingDir . '/copyright.txt';
+            if (file_exists($overridedExcludedFile) && is_file($overridedExcludedFile)) {
+                $this->licenseFile = $overridedExcludedFile;
+            }
+        }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -121,6 +151,7 @@ class BuildModuleCommand extends Command
         $this->removeArtifact($this->outputDir, $artifactName);
         $this->copyFiles($this->workingDir, $buildDir, $this->excludeFile);
         $this->addIndexPhpFile($buildDir, $this->indexPhpFile);
+        $this->updateLicenceOfFiles($buildDir, $this->licenseFile);
         $this->generateArtifact($this->tmpDir, $this->moduleName, $artifactName);
         $this->moveArtifact($this->tmpDir, $this->outputDir, $artifactName);
     }
@@ -192,6 +223,28 @@ class BuildModuleCommand extends Command
                 $filesystem->copy($indexPhpFile, $directory . '/index.php');
             }
         }
+    }
+
+    /**
+     * Update license of files
+     */
+    protected function updateLicenceOfFiles($dir, $licenseFile)
+    {
+        // Let's create the container
+        // and instantiate the command
+        $command = new UpdateLicensesCommand();
+        $command->setApplication($this->getApplication());
+
+        $arguments = [
+            '--target' => $dir,
+            '--license' => $licenseFile,
+            '--exclude' => 'vendor',
+            '--extensions' => 'php,js,css,scss,tpl,html.twig,vue'
+        ];
+
+        // Let's execute the command
+        $commandInput = new ArrayInput($arguments);
+        $command->run($commandInput, $this->output);
     }
 
     /**
