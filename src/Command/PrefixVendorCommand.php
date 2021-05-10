@@ -18,11 +18,6 @@ use Symfony\Component\Process\Process;
 class PrefixVendorCommand extends Command
 {
     /**
-     * Temp directory where to store everything we need
-     */
-    protected const TMP_DIR = '/.pbt/vendor';
-
-    /**
      * @var OutputInterface
      */
     protected $output;
@@ -36,11 +31,11 @@ class PrefixVendorCommand extends Command
      * Vendor directory
      */
     protected $vendorDir;
-    
+
     /**
-     * Temp directory
+     * Vendor prefixed directory
      */
-    protected $tmpDir;
+    protected $vendorPrefixedDir;
     
     /**
      * Config file for php-scooper
@@ -53,6 +48,11 @@ class PrefixVendorCommand extends Command
     protected $prefix;
 
     /**
+     * Move prefixed vendors back into vendor directory
+     */
+    protected $moveBackPrefixedVendor;
+
+    /**
      * Configures the current command.
      */
     protected function configure(): void
@@ -62,8 +62,10 @@ class PrefixVendorCommand extends Command
             ->setDescription('Prefix composer vendor')
             ->addOption('working-dir', 'd', InputOption::VALUE_OPTIONAL, 'Use the given directory as working directory', getcwd())
             ->addOption('vendor-dir', 'i', InputOption::VALUE_OPTIONAL, 'Use the given directory as the vendor directory', getcwd() . '/vendor')
+            ->addOption('vendor-prefixed-dir', 'o', InputOption::VALUE_OPTIONAL, 'Use the given directory as the output for the prefixed vendors', getcwd() . '/vendor-prefixed')
             ->addOption('config', 'c', InputOption::VALUE_OPTIONAL, 'PHP-Scoper config file', null)
             ->addOption('prefix', 'p', InputOption::VALUE_OPTIONAL, 'PHP-Scoper namespace prefix', null)
+            ->addOption('move-vendor', 'm', InputOption::VALUE_OPTIONAL, 'Move prefixed vendors back into vendor directory', false)
         ;
     }
 
@@ -76,9 +78,10 @@ class PrefixVendorCommand extends Command
         // Extract all options needed to prefix the vendors
         $this->workingDir = $input->getOption('working-dir');
         $this->vendorDir = $input->getOption('vendor-dir');
-        $this->tmpDir = $this->workingDir . self::TMP_DIR;
+        $this->vendorPrefixedDir = $input->getOption('vendor-prefixed-dir');
         $this->configFile = $input->getOption('config');
         $this->prefix = $input->getOption('prefix');
+        $this->moveBackPrefixedVendor = $input->getOption('move-vendor');
 
         // If the user did not specify a config file
         if (!$this->configFile) {
@@ -102,28 +105,30 @@ class PrefixVendorCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->cleanTmpDirectory($this->tmpDir);
+        $this->cleanVendorPrefixedDirectory($this->vendorPrefixedDir);
         $this->copyDummyFile($this->vendorDir);
         
         // Let's prefix the vendor
         $this->prefixVendor(
             $this->workingDir, 
-            $this->tmpDir,
+            $this->vendorPrefixedDir,
             $this->configFile,
             $this->prefix
         );
 
-        $this->moveBackPrefixedVendors($this->vendorDir, $this->tmpDir);
+        if ($this->moveBackPrefixedVendor) {
+            $this->moveBackPrefixedVendors($this->vendorDir, $this->vendorPrefixedDir);
+        }
         $this->dumpComposerAutoload($this->workingDir);
     }
 
     /**
      * Clean the output directory
      */
-    protected function cleanTmpDirectory($tmpDir)
+    protected function cleanVendorPrefixedDirectory($vendorPrefixedDir)
     {
         $filesystem = new Filesystem();
-        $filesystem->remove($tmpDir);
+        $filesystem->remove($vendorPrefixedDir);
     }
 
     /**
@@ -177,13 +182,13 @@ class PrefixVendorCommand extends Command
     /**
      * Remove prefixed vendors from the vendor dir
      */
-    protected function moveBackPrefixedVendors($vendorDir, $outputDir)
+    protected function moveBackPrefixedVendors($vendorDir, $vendorPrefixedDir)
     {
         // We need to remove the old packages or composer will autoload them
         // creating conflicts during development
         $finder = new Finder();
         $finder->directories()
-            ->in($outputDir)
+            ->in($vendorPrefixedDir)
             ->depth(1);
 
         $filesystem = new Filesystem();
@@ -191,7 +196,7 @@ class PrefixVendorCommand extends Command
             // Otain the path of the package relative to the outputDir
             // and then remove the original packages and copy back 
             // the prefixed one
-            $relativePath = substr($directory, strlen($outputDir));
+            $relativePath = substr($directory, strlen($vendorPrefixedDir));
             $filesystem->remove($vendorDir . '/' . $relativePath);
             $filesystem->mirror($directory, $vendorDir . '/' . $relativePath);
         }
