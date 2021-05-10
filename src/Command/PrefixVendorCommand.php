@@ -116,6 +116,7 @@ class PrefixVendorCommand extends Command
             $this->prefix
         );
 
+        $this->removePrefixedVendor($this->vendorDir, $this->vendorPrefixedDir);
         if ($this->moveBackPrefixedVendor) {
             $this->moveBackPrefixedVendors($this->vendorDir, $this->vendorPrefixedDir);
         }
@@ -180,6 +181,27 @@ class PrefixVendorCommand extends Command
     }
 
     /**
+     * Remove prefixed vendor into vendor directory
+     */
+    protected function removePrefixedVendor($vendorDir, $vendorPrefixedDir)
+    {
+        // We need to remove the old packages or composer will autoload them
+        // creating conflicts during development
+        $finder = new Finder();
+        $finder->directories()
+            ->in($vendorPrefixedDir)
+            ->depth(1);
+
+        $filesystem = new Filesystem();
+        foreach ($finder as $directory) {
+            // Otain the path of the package relative to the outputDir
+            // and then remove the original package
+            $relativePath = substr($directory, strlen($vendorPrefixedDir));
+            $filesystem->remove($vendorDir . '/' . $relativePath);
+        }
+    }
+
+    /**
      * Remove prefixed vendors from the vendor dir
      */
     protected function moveBackPrefixedVendors($vendorDir, $vendorPrefixedDir)
@@ -197,7 +219,7 @@ class PrefixVendorCommand extends Command
             // and then remove the original packages and copy back 
             // the prefixed one
             $relativePath = substr($directory, strlen($vendorPrefixedDir));
-            $filesystem->remove($vendorDir . '/' . $relativePath);
+            $filesystem->remove($vendorDir . '/' . $relativePath); // Just to be sure
             $filesystem->mirror($directory, $vendorDir . '/' . $relativePath);
         }
     }
