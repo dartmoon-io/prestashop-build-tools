@@ -65,7 +65,7 @@ class PrefixVendorCommand extends Command
             ->addOption('vendor-prefixed-dir', 'o', InputOption::VALUE_OPTIONAL, 'Use the given directory as the output for the prefixed vendors', getcwd() . '/vendor-prefixed')
             ->addOption('config', 'c', InputOption::VALUE_OPTIONAL, 'PHP-Scoper config file', null)
             ->addOption('prefix', 'p', InputOption::VALUE_OPTIONAL, 'PHP-Scoper namespace prefix', null)
-            ->addOption('move-vendor', 'm', InputOption::VALUE_OPTIONAL, 'Move prefixed vendors back into vendor directory', false)
+            ->addOption('move-vendor', 'm', InputOption::VALUE_NONE, 'Move prefixed vendors back into vendor directory')
         ;
     }
 
