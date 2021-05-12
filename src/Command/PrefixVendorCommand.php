@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the dartmoon/prestashop-build-tools package.
+ *
+ * Copyright (c) 2021 Dartmoon <hello@dartmoon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Dartmoon\PrestaShopBuildTools\Command;
 
 use Dartmoon\PrestaShopBuildTools\ComposerJson;
