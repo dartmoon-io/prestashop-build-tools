@@ -1,7 +1,7 @@
 .git/
 .pbt/
 _dev/
-vendor_prefixed/
+vendor-prefixed/
 /composer.json
 /composer.lock
 .gitignore
