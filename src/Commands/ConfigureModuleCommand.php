@@ -11,11 +11,11 @@
 
 namespace Dartmoon\PrestaShopBuildTools\Commands;
 
-use Dartmoon\PrestaShopBuildTools\ComposerJson;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Process\Process;
 
 class ConfigureModuleCommand extends Command
 {
@@ -27,29 +27,36 @@ class ConfigureModuleCommand extends Command
     protected $workingDir;
 
     /**
-     * Composer.json file
-     * 
-     * @var ComposerJson
-     */
-    protected $composerJson;
-
-    /**
      * Module data
      * 
-     * @var string
+     * @var array
      */
     protected $data = [
-        'NAME' => '',
-        'DISPLAY_NAME' => '',
-        'VERSION' => '1.0.0',
-        'DESCRIPTION' => '',
-        'AUTHOR' => '',
-        'CLASS_NAME' => '',
-        'NAMESPACE' => '',
-        'VENDOR_PREFIX' => '',
-        'NAME_UPPERCASE' => '',
-        'YEAR' => '',
+        'NAME' => '', //
+        'DISPLAY_NAME' => '', //
+        'VERSION' => '1.0.0', //
+        'DESCRIPTION' => '', //
+        'AUTHOR' => '', //
+        'CLASS_NAME' => '', //
+        'NAMESPACE' => '', //
+        'VENDOR_PREFIX' => '', //
+        'NAME_UPPERCASE' => '', //
+        'YEAR' => '', //
     ];
+
+    /**
+     * Files to replace
+     * 
+     * true if using "{}" as placeholder delimiters
+     */
+    protected $filesToReplace = [
+        'views/templates/admin/configure.tpl',
+        'composer.json',
+        'copyright.txt',
+        '___NAME___.php',
+    ];
+
+    protected $mainFileName = '___NAME___.php';
 
     /**
      * Configures the current command.
@@ -65,7 +72,6 @@ class ConfigureModuleCommand extends Command
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->workingDir = getcwd();
-        $this->composerJson = new ComposerJson($this->workingDir . '/composer.json');
 
         // Default values
         $this->data['NAME'] = strtolower(str_replace(' ', '', basename($this->workingDir)));
@@ -159,5 +165,50 @@ class ConfigureModuleCommand extends Command
 
         // Module name uppercase
         $this->data['NAME_UPPERCASE'] = strtoupper($this->data['NAME']);
+
+        // Configure the module
+        $this->configureModule();
+    }
+
+    protected function configureModule()
+    {
+        // Fix namespaces
+        $this->data['NAMESPACE'] = str_replace('\\', '\\\\', $this->data['NAMESPACE']);
+        $this->data['VENDOR_PREFIX'] = str_replace('\\', '\\\\', $this->data['VENDOR_PREFIX']);
+
+        // Replace fileholder
+        foreach ($this->filesToReplace as $file) {
+            $this->replacePlaceholderInFile($file);
+        }
+
+        // Rename main file
+        rename($this->workingDir . '/' . $this->mainFileName, $this->workingDir . '/' . $this->data['NAME'] . '.php');
+
+        // Execute composer update
+        $this->executeComposerUpdate();
+    }
+
+    protected function replacePlaceholderInFile($file)
+    {
+        $content = file_get_contents($this->workingDir . '/' . $file);
+        $content = str_replace(
+            array_map(function ($key) {
+                return '___' . $key . '___';
+            }, array_keys($this->data)),
+            array_values($this->data),
+            $content
+        );
+        file_put_contents($this->workingDir . '/' . $file, $content);
+    }
+
+    protected function executeComposerUpdate()
+    {
+        $process = new Process(['composer', 'update']);
+        $process->setWorkingDirectory($this->workingDir);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException($process->getErrorOutput());
+        }
     }
 }
