@@ -3,13 +3,13 @@
 /*
  * This file is part of the dartmoon/prestashop-build-tools package.
  *
- * Copyright (c) 2021 Dartmoon <hello@dartmoon.io>
+ * Copyright (c) 2023 Dartmoon S.r.l. <hello@dartmoon.io>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Dartmoon\PrestaShopBuildTools\Command;
+namespace Dartmoon\PrestaShopBuildTools\Commands;
 
 use Dartmoon\PrestaShopBuildTools\ComposerJson;
 use PrestaShop\HeaderStamp\Command\UpdateLicensesCommand;

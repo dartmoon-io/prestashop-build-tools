@@ -10,7 +10,7 @@
  * file that was distributed with this source code.
  */
 
-use Dartmoon\PrestaShopBuildTools\Commands\BuildModuleCommand;
+use Dartmoon\PrestaShopBuildTools\Commands\ConfigureModuleCommand;
 use Symfony\Component\Console\Application;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
@@ -21,7 +21,7 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
 }
 
 $application = new Application('Dartmoon PrestaShop Build Tools');
-$command = new BuildModuleCommand();
+$command = new ConfigureModuleCommand();
 
 $application->add($command);
 

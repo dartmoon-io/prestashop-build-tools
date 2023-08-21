@@ -34,7 +34,8 @@
     },
     "bin": [
         "bin/prefix-vendor",
-        "bin/build-module"
+        "bin/build-module",
+        "bin/configure-module"
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,

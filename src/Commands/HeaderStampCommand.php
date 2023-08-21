@@ -18,7 +18,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
 
-namespace Dartmoon\PrestaShopBuildTools\Command;
+namespace Dartmoon\PrestaShopBuildTools\Commands;
 
 use PhpParser\Node\Stmt;
 use PhpParser\ParserFactory;

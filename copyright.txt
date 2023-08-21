@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Dartmoon <hello@dartmoon.io>
+ * Copyright (c) 2023 Dartmoon S.r.l. <hello@dartmoon.io>
  *
  * If you wish to customize this module for your needs,
  * please contact the authors first for more information.
@@ -8,6 +8,6 @@
  * this file or any other module files without author permission.
  *
  * @author    Dartmoon <hello@dartmoon.io>
- * @copyright Copyright (c) 2021 Dartmoon <hello@dartmoon.io> - https://dartmoon.io
+ * @copyright Copyright (c) 2023 Dartmoon S.r.l. <hello@dartmoon.io> - https://dartmoon.io
  * @license   You only can use module, nothing more!
  */
