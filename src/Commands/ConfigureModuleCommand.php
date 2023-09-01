@@ -15,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Process;
 
 class ConfigureModuleCommand extends Command
@@ -32,16 +33,18 @@ class ConfigureModuleCommand extends Command
      * @var array
      */
     protected $data = [
-        'NAME' => '', //
-        'DISPLAY_NAME' => '', //
-        'VERSION' => '1.0.0', //
-        'DESCRIPTION' => '', //
-        'AUTHOR' => '', //
-        'CLASS_NAME' => '', //
-        'NAMESPACE' => '', //
-        'VENDOR_PREFIX' => '', //
-        'NAME_UPPERCASE' => '', //
-        'YEAR' => '', //
+        'NAME' => '',
+        'DISPLAY_NAME' => '',
+        'VERSION' => '1.0.0',
+        'DESCRIPTION' => '',
+        'AUTHOR' => '',
+        'CLASS_NAME' => '',
+        'NAMESPACE' => '',
+        'VENDOR_PREFIX' => '',
+        'NAME_UPPERCASE' => '',
+        'YEAR' => '',
+        'VENDOR_PREFIX_ESCAPED' => '',
+        'NAMESPACE_ESCAPED' => '',
     ];
 
     /**
@@ -50,13 +53,19 @@ class ConfigureModuleCommand extends Command
      * true if using "{}" as placeholder delimiters
      */
     protected $filesToReplace = [
-        'views/templates/admin/configure.tpl',
         'composer.json',
         'copyright.txt',
         '___NAME___.php',
     ];
 
+    protected $foldersToReplace = [
+        'src/',
+        'views/templates/',
+    ];
+
     protected $mainFileName = '___NAME___.php';
+
+    protected $placeholderPrefix = '___';
 
     /**
      * Configures the current command.
@@ -98,7 +107,7 @@ class ConfigureModuleCommand extends Command
         do {
             $question = new Question("Module display name ({$this->data['DISPLAY_NAME']}): ", $this->data['DISPLAY_NAME']);
             $displayName = $helper->ask($input, $output, $question);
-            $valid = preg_match('/^[^0-9!<>,;?=+()@#"°{}_$%:¤|]*$/u', $displayName);
+            $valid = preg_match('/^[^<>;=#{}]*$/u', $displayName);
         } while (!$valid);
         $this->data['DISPLAY_NAME'] = $displayName;
 
@@ -173,12 +182,24 @@ class ConfigureModuleCommand extends Command
     protected function configureModule()
     {
         // Fix namespaces
-        $this->data['NAMESPACE'] = str_replace('\\', '\\\\', $this->data['NAMESPACE']);
-        $this->data['VENDOR_PREFIX'] = str_replace('\\', '\\\\', $this->data['VENDOR_PREFIX']);
+        $this->data['NAMESPACE_ESCAPED'] = str_replace('\\', '\\\\', $this->data['NAMESPACE']);
+        $this->data['VENDOR_PREFIX_ESCAPED'] = str_replace('\\', '\\\\', $this->data['VENDOR_PREFIX']);
 
-        // Replace fileholder
+        //Let's find all files with placeholders to replace
+        $finder = new Finder();
+        $finder
+            ->files()
+            ->in(array_map(fn ($file) => $this->workingDir . '/' . $file, $this->foldersToReplace))
+            ->contains('/' . array_reduce($this->getPlaceholders(), fn ($carry, $placeholder) => $carry . $placeholder . '|', '') . '/');
+
+        // Replace finded files
+        foreach ($finder as $file) {
+            $this->replacePlaceholderInFile($file->getPathname());
+        }
+
+        // Replace files
         foreach ($this->filesToReplace as $file) {
-            $this->replacePlaceholderInFile($file);
+            $this->replacePlaceholderInFile($this->workingDir . '/' . $file);
         }
 
         // Rename main file
@@ -190,15 +211,13 @@ class ConfigureModuleCommand extends Command
 
     protected function replacePlaceholderInFile($file)
     {
-        $content = file_get_contents($this->workingDir . '/' . $file);
+        $content = file_get_contents($file);
         $content = str_replace(
-            array_map(function ($key) {
-                return '___' . $key . '___';
-            }, array_keys($this->data)),
+            $this->getPlaceholders(),
             array_values($this->data),
             $content
         );
-        file_put_contents($this->workingDir . '/' . $file, $content);
+        file_put_contents($file, $content);
     }
 
     protected function executeComposerUpdate()
@@ -210,5 +229,12 @@ class ConfigureModuleCommand extends Command
         if (!$process->isSuccessful()) {
             throw new \RuntimeException($process->getErrorOutput());
         }
+    }
+
+    protected function getPlaceholders()
+    {
+        return array_map(function ($key) {
+            return $this->placeholderPrefix . $key . $this->placeholderPrefix;
+        }, array_keys($this->data));
     }
 }
