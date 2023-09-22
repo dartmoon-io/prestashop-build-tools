@@ -279,9 +279,6 @@ class HeaderStampCommand extends UpdateLicensesCommand
     {
         $content = $file->getContents();
         $oldContent = $content;
-        // Regular expression found thanks to Stephen Ostermiller's Blog. http://blog.ostermiller.org/find-comment
-        $regex = '%' . $startDelimiter . '\*([^*]|[\r\n]|(\*+([^*' . $endDelimiter . ']|[\r\n])))*\*+' . $endDelimiter . '%';
-        $matches = [];
         $text = $this->text;
         if ($startDelimiter != '\/') {
             $text = $startDelimiter . ltrim($text, '/');
@@ -290,20 +287,7 @@ class HeaderStampCommand extends UpdateLicensesCommand
             $text = rtrim($text, '/') . $endDelimiter;
         }
 
-        // Try to find an existing license
-        preg_match($regex, $content, $matches);
-
-        if (count($matches)) {
-            // Found - Replace it if prestashop one
-            foreach ($matches as $match) {
-                if (stripos($match, $this->discriminationString) !== false) {
-                    $content = str_replace($match, $text, $content);
-                }
-            }
-        } else {
-            // Not found - Add it at the beginning of the file
-            $content = $text . "\n" . $content;
-        }
+        $content = $text . "\n" . $content;
 
         if (!$this->runAsDry) {
             file_put_contents($this->targetDirectory . '/' . $file->getRelativePathname(), $content);
