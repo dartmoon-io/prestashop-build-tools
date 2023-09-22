@@ -12,7 +12,6 @@
 namespace Dartmoon\PrestaShopBuildTools\Commands;
 
 use Dartmoon\PrestaShopBuildTools\ComposerJson;
-use PrestaShop\HeaderStamp\Command\UpdateLicensesCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -154,6 +153,7 @@ class BuildModuleCommand extends Command
         $this->copyFiles($this->workingDir, $buildDir, $this->excludeFile);
         $this->addIndexPhpFiles($buildDir);
         $this->updateLicenceOfFiles($buildDir, $this->licenseFile);
+        $this->fixCodingStyle($this->tmpDir, $this->workingDir);
         $this->generateArtifact($this->tmpDir, $this->moduleName, $artifactName);
         $this->moveArtifact($this->tmpDir, $this->outputDir, $artifactName);
     }
@@ -249,6 +249,24 @@ class BuildModuleCommand extends Command
         // Let's execute the command
         $commandInput = new ArrayInput($arguments);
         $command->run($commandInput, $this->output);
+    }
+
+    /**
+     * Fix confing style
+     */
+    protected function fixCodingStyle($dir, $configFileDir)
+    {
+        $path = realpath(__DIR__ . '/../../../../bin/php-cs-fixer');
+        $process = new Process([
+            'php', 
+            $path, 
+            'fix',
+            $dir,
+            '-v',
+            '--diff',
+            '--config=' . $configFileDir . '/.php-cs-fixer.dist.php'
+        ]);
+        $process->run();
     }
 
     /**

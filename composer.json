@@ -19,6 +19,7 @@
         "adbario/php-dot-notation": "^2.2",
         "humbug/php-scoper": "^0.14.0",
         "prestashop/header-stamp": "^2.0",
+        "prestashop/php-dev-tools": "^4.3",
         "symfony/console": "^4",
         "symfony/filesystem": "^4",
         "symfony/finder": "^4",
